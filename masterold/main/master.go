@@ -28,15 +28,15 @@ func main() {
 	initArgs()
 	//初始化线程
 	initEnv()
-	if err = master.InitConfig(confFile); err != nil {
+	if err = masterold.InitConfig(confFile); err != nil {
 		goto ERR
 	}
 	//初始化任务管理器
-	if err = master.InitJobMgr(); err != nil {
+	if err = masterold.InitJobMgr(); err != nil {
 		goto ERR
 	}
 	//启动api服务器
-	if err = master.InitApiServer(); err != nil {
+	if err = masterold.InitApiServer(); err != nil {
 		goto ERR
 	}
 	// 正常退出

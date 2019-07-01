@@ -1,4 +1,4 @@
-package common
+package commonold
 
 const (
 	JOB_SAVE_DIR = "/cron/jobs/"

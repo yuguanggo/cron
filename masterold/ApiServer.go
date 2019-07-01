@@ -1,4 +1,4 @@
-package master
+package masterold
 
 import (
 	"net/http"
@@ -23,8 +23,8 @@ func handleJobSave(resp http.ResponseWriter, req *http.Request) {
 	var (
 		err     error
 		postJob string
-		job     common.Job
-		oldJob  *common.Job
+		job     commonold.Job
+		oldJob  *commonold.Job
 		bytes   []byte
 	)
 	//解析表单
@@ -42,13 +42,13 @@ func handleJobSave(resp http.ResponseWriter, req *http.Request) {
 		goto ERR
 	}
 	//返回正常应答
-	if bytes, err = common.BuildResponse(0, "success", oldJob); err == nil {
+	if bytes, err = commonold.BuildResponse(0, "success", oldJob); err == nil {
 		resp.Write(bytes)
 	}
 	return
 ERR:
 //返回异常应答
-	if bytes, err = common.BuildResponse(-1, err.Error(), nil); err == nil {
+	if bytes, err = commonold.BuildResponse(-1, err.Error(), nil); err == nil {
 		resp.Write(bytes)
 	}
 }
@@ -57,7 +57,7 @@ func handleJobDelete(resp http.ResponseWriter, req *http.Request) {
 	var (
 		err     error
 		jobName string
-		oldJob  *common.Job
+		oldJob  *commonold.Job
 		bytes   []byte
 	)
 	//解析表单
@@ -71,33 +71,33 @@ func handleJobDelete(resp http.ResponseWriter, req *http.Request) {
 		goto ERR
 	}
 	//正常返回
-	if bytes, err = common.BuildResponse(0, "success", oldJob); err == nil {
+	if bytes, err = commonold.BuildResponse(0, "success", oldJob); err == nil {
 		resp.Write(bytes)
 	}
 	return
 ERR:
 //异常返回
-	if bytes, err = common.BuildResponse(-1, err.Error(), nil); err == nil {
+	if bytes, err = commonold.BuildResponse(-1, err.Error(), nil); err == nil {
 		resp.Write(bytes)
 	}
 }
 
 func handleJobList(resp http.ResponseWriter, req *http.Request) {
 	var (
-		jobList []*common.Job
+		jobList []*commonold.Job
 		err     error
 		bytes   []byte
 	)
 	if jobList, err = G_jobMgr.ListJob(); err != nil {
 		goto ERR
 	}
-	if bytes, err = common.BuildResponse(0, "success", jobList); err == nil {
+	if bytes, err = commonold.BuildResponse(0, "success", jobList); err == nil {
 		resp.Write(bytes)
 	}
 	return
 ERR:
 //异常返回
-	if bytes, err = common.BuildResponse(-1, err.Error(), nil); err == nil {
+	if bytes, err = commonold.BuildResponse(-1, err.Error(), nil); err == nil {
 		resp.Write(bytes)
 	}
 }

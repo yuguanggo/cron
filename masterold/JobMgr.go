@@ -1,4 +1,4 @@
-package master
+package masterold
 
 import (
 	"github.com/coreos/etcd/clientv3"
@@ -50,15 +50,15 @@ func InitJobMgr() (err error) {
 	return
 }
 
-func (jobMgr *JobMgr) SaveJob(job *common.Job) (oldJob *common.Job, err error) {
+func (jobMgr *JobMgr) SaveJob(job *commonold.Job) (oldJob *commonold.Job, err error) {
 	var (
 		jobKey    string
 		jobValue  []byte
 		putResp   *clientv3.PutResponse
-		oldJobObj common.Job
+		oldJobObj commonold.Job
 	)
 	//etcd 保存的key
-	jobKey = common.JOB_SAVE_DIR + job.Name
+	jobKey = commonold.JOB_SAVE_DIR + job.Name
 
 	//任务信息json
 	if jobValue, err = json.Marshal(job); err != nil {
@@ -79,13 +79,13 @@ func (jobMgr *JobMgr) SaveJob(job *common.Job) (oldJob *common.Job, err error) {
 	return
 }
 
-func (jobMgr *JobMgr) DeleteJob(name string) (oldJob *common.Job, err error) {
+func (jobMgr *JobMgr) DeleteJob(name string) (oldJob *commonold.Job, err error) {
 	var (
 		jobKey    string
 		delResp   *clientv3.DeleteResponse
-		oldJobObj common.Job
+		oldJobObj commonold.Job
 	)
-	jobKey = common.JOB_SAVE_DIR + name
+	jobKey = commonold.JOB_SAVE_DIR + name
 	if delResp, err = jobMgr.kv.Delete(context.TODO(), jobKey, clientv3.WithPrevKV()); err != nil {
 		return
 	}
@@ -99,20 +99,20 @@ func (jobMgr *JobMgr) DeleteJob(name string) (oldJob *common.Job, err error) {
 	return
 }
 
-func (jobMgr *JobMgr) ListJob() (jobList []*common.Job, err error) {
+func (jobMgr *JobMgr) ListJob() (jobList []*commonold.Job, err error) {
 	var (
 		dirKey  string
 		getResp *clientv3.GetResponse
 		kvPair *mvccpb.KeyValue
-		job *common.Job
+		job *commonold.Job
 	)
-	dirKey = common.JOB_SAVE_DIR
+	dirKey = commonold.JOB_SAVE_DIR
 	if getResp, err = jobMgr.kv.Get(context.TODO(), dirKey, clientv3.WithPrefix()); err != nil {
 		return
 	}
-	jobList = make([]*common.Job,0)
+	jobList = make([]*commonold.Job,0)
 	for _,kvPair = range getResp.Kvs{
-		job = &common.Job{}
+		job = &commonold.Job{}
 		if err = json.Unmarshal([]byte(kvPair.Value),job);err!=nil{
 			err = nil
 			continue
