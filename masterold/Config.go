@@ -1,4 +1,4 @@
-package master
+package masterold
 
 import (
 	"io/ioutil"
