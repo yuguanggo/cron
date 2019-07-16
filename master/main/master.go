@@ -36,6 +36,11 @@ func main()  {
 	if err=master.InitConfig(configFile);err!=nil{
 		goto ERROR
 	}
+	//初始话etcd
+	if err=master.InitJobMgr();err!=nil{
+		goto ERROR
+	}
+
 	//初始化服务器
 	if err=master.InitApiServer();err!=nil{
 		goto ERROR

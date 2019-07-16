@@ -5,6 +5,8 @@ import (
 	"strconv"
 	"net/http"
 	"time"
+	"encoding/json"
+	"cron/common"
 )
 
 type ApiServer struct {
@@ -15,8 +17,60 @@ var (
 	G_ApiServer *ApiServer
 )
 
-func HandlerSave(w http.ResponseWriter,r *http.Request)  {
+func HandlerJobSave(w http.ResponseWriter,r *http.Request)  {
+	var (
+		postJob string
+		err error
+		job common.Job
+		oldJob *common.Job
+		bytes []byte
+	)
+	//获取参数
+	if err = r.ParseForm();err!=nil{
+		goto ERR
+	}
+	postJob = r.PostForm.Get("job")
 
+	if err=json.Unmarshal([]byte(postJob),&job);err!=nil{
+		goto ERR
+	}
+	if oldJob,err=G_jobMgr.SaveJob(&job);err!=nil{
+		goto ERR
+	}
+	//正常应答
+	if bytes,err=common.BuildResponse(0,"",oldJob);err==nil{
+		w.Write(bytes)
+	}
+	return
+ERR:
+	if bytes,err=common.BuildResponse(-1,err.Error(),nil);err==nil{
+		w.Write(bytes)
+	}
+
+}
+//删除任务
+func HandleJobDelete(w http.ResponseWriter,r *http.Request)  {
+	var (
+		err error
+		name string
+		oldJob *common.Job
+		bytes []byte
+	)
+	if err=r.ParseForm();err!=nil{
+		goto ERR
+	}
+	name=r.PostForm.Get("job")
+	if oldJob,err=G_jobMgr.DeleteJob(name);err!=nil{
+		goto ERR
+	}
+	if bytes,err=common.BuildResponse(0,"success",oldJob);err==nil{
+		w.Write(bytes)
+	}
+	return
+ERR:
+	if bytes,err =common.BuildResponse(-1,err.Error(),nil);err==nil{
+		w.Write(bytes)
+	}
 }
 
 func InitApiServer() (err error) {
@@ -31,7 +85,8 @@ func InitApiServer() (err error) {
 	}
 	//路由
 	mux =http.NewServeMux()
-	mux.HandleFunc("/save",HandlerSave)
+	mux.HandleFunc("/job/save",HandlerJobSave)
+	mux.HandleFunc("/job/delete",HandleJobDelete)
 	//创建了一个http服务
 	server = &http.Server{
 		ReadTimeout:time.Duration(G_config.ApiReadTimeOut)*time.Millisecond,
