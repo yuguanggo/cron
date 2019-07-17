@@ -6,6 +6,7 @@ import (
 	"cron/common"
 	"context"
 	"encoding/json"
+	"github.com/coreos/etcd/mvcc/mvccpb"
 )
 
 type JobMgr struct {
@@ -52,7 +53,7 @@ func (jobMgr *JobMgr)SaveJob(job *common.Job)(oldJob *common.Job,err error)  {
 	if content,err=json.Marshal(job);err!=nil{
 		return
 	}
-	if putResponse,err=jobMgr.kv.Put(context.TODO(),jobKey,string(content),clientv3.WithPrefix());err!=nil{
+	if putResponse,err=jobMgr.kv.Put(context.TODO(),jobKey,string(content),clientv3.WithPrevKV());err!=nil{
 		return
 	}
 	if putResponse.PrevKv!=nil{
@@ -73,7 +74,7 @@ func (jobMgr *JobMgr)DeleteJob(name string)(oldJob *common.Job,err error){
 		oldJobObj common.Job
 	)
 	jobKey = common.JOB_SAVE_DIR+name
-	if delResponse,err=jobMgr.kv.Delete(context.TODO(),jobKey,clientv3.WithPrefix());err!=nil{
+	if delResponse,err=jobMgr.kv.Delete(context.TODO(),jobKey,clientv3.WithPrevKV());err!=nil{
 		return
 	}
 	if delResponse.PrevKvs!=nil{
@@ -82,6 +83,48 @@ func (jobMgr *JobMgr)DeleteJob(name string)(oldJob *common.Job,err error){
 			return
 		}
 		oldJob=&oldJobObj
+	}
+	return
+}
+
+//任务列表
+func (jobMgr *JobMgr)ListJobs()(jobList []*common.Job,err error){
+	var(
+		jobdir string
+		getResp *clientv3.GetResponse
+		kvPair *mvccpb.KeyValue
+		job *common.Job
+	)
+	jobdir = common.JOB_SAVE_DIR
+
+	if getResp,err=jobMgr.kv.Get(context.TODO(),jobdir,clientv3.WithPrefix());err!=nil{
+		return
+	}
+	jobList=make([]*common.Job,0)
+	for _,kvPair=range getResp.Kvs{
+		if err=json.Unmarshal(kvPair.Value,&job);err!=nil{
+			err=nil
+			continue
+		}
+		jobList=append(jobList,job)
+	}
+	return
+}
+
+//杀死任务
+func (jobMgr *JobMgr)KillJob(job string)(err error){
+	var(
+		killKey string
+		leaseGrantResp *clientv3.LeaseGrantResponse
+		leaseId clientv3.LeaseID
+	)
+	killKey=common.JOB_KILL_DIR+job
+	if leaseGrantResp,err=jobMgr.lease.Grant(context.TODO(),1);err!=nil{
+		return
+	}
+	leaseId = leaseGrantResp.ID
+	if _,err=jobMgr.kv.Put(context.TODO(),killKey,"",clientv3.WithLease(leaseId));err!=nil{
+		return
 	}
 	return
 }

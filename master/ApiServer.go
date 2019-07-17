@@ -59,7 +59,7 @@ func HandleJobDelete(w http.ResponseWriter,r *http.Request)  {
 	if err=r.ParseForm();err!=nil{
 		goto ERR
 	}
-	name=r.PostForm.Get("job")
+	name=r.PostForm.Get("name")
 	if oldJob,err=G_jobMgr.DeleteJob(name);err!=nil{
 		goto ERR
 	}
@@ -71,6 +71,54 @@ ERR:
 	if bytes,err =common.BuildResponse(-1,err.Error(),nil);err==nil{
 		w.Write(bytes)
 	}
+}
+
+
+//任务列表
+func HandleJobList(w http.ResponseWriter,r *http.Request)  {
+	var (
+		err error
+		jobList []*common.Job
+		bytes []byte
+	)
+	if jobList,err=G_jobMgr.ListJobs();err!=nil{
+		goto ERR
+	}
+	if bytes,err=common.BuildResponse(0,"success",jobList);err==nil{
+		w.Write(bytes)
+	}
+	return
+ERR:
+	if bytes,err =common.BuildResponse(-1,err.Error(),nil);err==nil{
+		w.Write(bytes)
+	}
+}
+
+func HandlerJobKill(w http.ResponseWriter,r *http.Request)  {
+	var (
+		postJob string
+		err error
+		bytes []byte
+	)
+	//获取参数
+	if err = r.ParseForm();err!=nil{
+		goto ERR
+	}
+	postJob = r.PostForm.Get("name")
+
+	if err=G_jobMgr.KillJob(postJob);err!=nil{
+		goto ERR
+	}
+	//正常应答
+	if bytes,err=common.BuildResponse(0,"",nil);err==nil{
+		w.Write(bytes)
+	}
+	return
+ERR:
+	if bytes,err=common.BuildResponse(-1,err.Error(),nil);err==nil{
+		w.Write(bytes)
+	}
+
 }
 
 func InitApiServer() (err error) {
@@ -87,6 +135,8 @@ func InitApiServer() (err error) {
 	mux =http.NewServeMux()
 	mux.HandleFunc("/job/save",HandlerJobSave)
 	mux.HandleFunc("/job/delete",HandleJobDelete)
+	mux.HandleFunc("/job/kill",HandlerJobKill)
+	mux.HandleFunc("/job/list",HandleJobList)
 	//创建了一个http服务
 	server = &http.Server{
 		ReadTimeout:time.Duration(G_config.ApiReadTimeOut)*time.Millisecond,
