@@ -6,4 +6,10 @@ const (
 
 	//杀死任务目录
 	JOB_KILL_DIR="/cron/kill/"
+
+
+	//保存任务事件
+	JOB_EVENT_SAVE=0
+	//删除任务事件
+	JOB_EVENT_DELETE=1
 )

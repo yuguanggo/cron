@@ -1,6 +1,11 @@
 package common
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"github.com/gorhill/cronexpr"
+	"strings"
+	"time"
+)
 
 type Job struct {
 	Name string `json:"name"`
@@ -15,6 +20,26 @@ type Response struct {
 	Data interface{} `json:"data"`
 }
 
+//变化事件
+type JobEnvent struct {
+	EventType int
+	Job *Job
+}
+
+//任务调度计划
+type JobSchedulePlan struct {
+	Job *Job
+	Expr *cronexpr.Expression
+	NextTime time.Time
+}
+
+func BuildJobEvent(eventType int,job *Job) *JobEnvent  {
+	return &JobEnvent{
+		EventType:eventType,
+		Job:job,
+	}
+}
+
 func BuildResponse(errno int,msg string,data interface{})(resp []byte,err error)  {
 	var (
 		response Response
@@ -25,5 +50,21 @@ func BuildResponse(errno int,msg string,data interface{})(resp []byte,err error)
 
 	resp,err=json.Marshal(response)
 	return
+}
+
+func UnpackJob(value []byte)(ret *Job,err error)  {
+	var (
+		job *Job
+	)
+	job=&Job{}
+	if err=json.Unmarshal(value,job);err!=nil{
+		return
+	}
+	ret=job
+	return
+}
+//提取job的名字
+func ExtractJobName(jobKey string) string  {
+	return strings.TrimPrefix(jobKey,JOB_SAVE_DIR)
 }
 

@@ -1,12 +1,12 @@
 package master
 
 import (
-	"github.com/coreos/etcd/clientv3"
-	"time"
-	"cron/common"
 	"context"
+	"cron/common"
 	"encoding/json"
+	"github.com/coreos/etcd/clientv3"
 	"github.com/coreos/etcd/mvcc/mvccpb"
+	"time"
 )
 
 type JobMgr struct {
@@ -54,6 +54,7 @@ func (jobMgr *JobMgr)SaveJob(job *common.Job)(oldJob *common.Job,err error)  {
 		return
 	}
 	if putResponse,err=jobMgr.kv.Put(context.TODO(),jobKey,string(content),clientv3.WithPrevKV());err!=nil{
+
 		return
 	}
 	if putResponse.PrevKv!=nil{
@@ -102,7 +103,8 @@ func (jobMgr *JobMgr)ListJobs()(jobList []*common.Job,err error){
 	}
 	jobList=make([]*common.Job,0)
 	for _,kvPair=range getResp.Kvs{
-		if err=json.Unmarshal(kvPair.Value,&job);err!=nil{
+		job=&common.Job{}
+		if err=json.Unmarshal(kvPair.Value,job);err!=nil{
 			err=nil
 			continue
 		}

@@ -1,12 +1,12 @@
 package master
 
 import (
-	"net"
-	"strconv"
-	"net/http"
-	"time"
-	"encoding/json"
 	"cron/common"
+	"encoding/json"
+	"net"
+	"net/http"
+	"strconv"
+	"time"
 )
 
 type ApiServer struct {
@@ -29,8 +29,6 @@ func HandlerJobSave(w http.ResponseWriter,r *http.Request)  {
 	if err = r.ParseForm();err!=nil{
 		goto ERR
 	}
-	postJob = r.PostForm.Get("job")
-
 	if err=json.Unmarshal([]byte(postJob),&job);err!=nil{
 		goto ERR
 	}
@@ -121,6 +119,17 @@ ERR:
 
 }
 
+func HandlerTest(w http.ResponseWriter,r *http.Request)  {
+	var (
+		err error
+		bytes []byte
+	)
+	if bytes,err=common.BuildResponse(0,"ddd",nil);err==nil{
+		w.Write(bytes)
+	}
+	return
+}
+
 func InitApiServer() (err error) {
 	var (
 		listener net.Listener
@@ -137,6 +146,7 @@ func InitApiServer() (err error) {
 	mux.HandleFunc("/job/delete",HandleJobDelete)
 	mux.HandleFunc("/job/kill",HandlerJobKill)
 	mux.HandleFunc("/job/list",HandleJobList)
+	mux.HandleFunc("/job/test",HandlerTest)
 	//创建了一个http服务
 	server = &http.Server{
 		ReadTimeout:time.Duration(G_config.ApiReadTimeOut)*time.Millisecond,
