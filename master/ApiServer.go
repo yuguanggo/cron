@@ -3,6 +3,7 @@ package master
 import (
 	"cron/common"
 	"encoding/json"
+	"fmt"
 	"net"
 	"net/http"
 	"strconv"
@@ -29,6 +30,7 @@ func HandlerJobSave(w http.ResponseWriter,r *http.Request)  {
 	if err = r.ParseForm();err!=nil{
 		goto ERR
 	}
+	postJob=r.PostForm.Get("job")
 	if err=json.Unmarshal([]byte(postJob),&job);err!=nil{
 		goto ERR
 	}
@@ -79,9 +81,11 @@ func HandleJobList(w http.ResponseWriter,r *http.Request)  {
 		jobList []*common.Job
 		bytes []byte
 	)
+	fmt.Println("1")
 	if jobList,err=G_jobMgr.ListJobs();err!=nil{
 		goto ERR
 	}
+	fmt.Println("2")
 	if bytes,err=common.BuildResponse(0,"success",jobList);err==nil{
 		w.Write(bytes)
 	}

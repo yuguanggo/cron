@@ -4,6 +4,7 @@ import (
 	"context"
 	"cron/common"
 	"encoding/json"
+	"fmt"
 	"github.com/coreos/etcd/clientv3"
 	"github.com/coreos/etcd/mvcc/mvccpb"
 	"time"
@@ -28,9 +29,12 @@ func InitJobMgr()(err error)  {
 		Endpoints:G_config.EtcdEndpoints,
 		DialTimeout:time.Duration(G_config.EtcdDialTimeout)*time.Millisecond,
 	}
+	fmt.Println("8")
 	if client,err=clientv3.New(config);err!=nil{
+		fmt.Println("9")
 		return
 	}
+	fmt.Println("10")
 	kv=clientv3.NewKV(client)
 	lease = clientv3.NewLease(client)
 	G_jobMgr = &JobMgr{
@@ -75,9 +79,12 @@ func (jobMgr *JobMgr)DeleteJob(name string)(oldJob *common.Job,err error){
 		oldJobObj common.Job
 	)
 	jobKey = common.JOB_SAVE_DIR+name
+	fmt.Println("DeleteJob1")
 	if delResponse,err=jobMgr.kv.Delete(context.TODO(),jobKey,clientv3.WithPrevKV());err!=nil{
+		fmt.Println("DeleteJob2")
 		return
 	}
+	fmt.Println("DeleteJob3")
 	if delResponse.PrevKvs!=nil{
 		if err=json.Unmarshal(delResponse.PrevKvs[0].Value,&oldJobObj);err!=nil{
 			err=nil
@@ -97,10 +104,12 @@ func (jobMgr *JobMgr)ListJobs()(jobList []*common.Job,err error){
 		job *common.Job
 	)
 	jobdir = common.JOB_SAVE_DIR
-
+	fmt.Println("4")
 	if getResp,err=jobMgr.kv.Get(context.TODO(),jobdir,clientv3.WithPrefix());err!=nil{
+		fmt.Println("5")
 		return
 	}
+	fmt.Println("6")
 	jobList=make([]*common.Job,0)
 	for _,kvPair=range getResp.Kvs{
 		job=&common.Job{}

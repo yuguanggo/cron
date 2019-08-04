@@ -1,10 +1,10 @@
 package main
 
 import (
-	"runtime"
-	"cron/master"
+	"cron/worker"
 	"flag"
 	"fmt"
+	"runtime"
 	"time"
 )
 
@@ -33,11 +33,16 @@ func main()  {
 	initArgs()
 
 	//初始化配置
-	if err=master.InitConfig(configFile);err!=nil{
+	if err=worker.InitConfig(configFile);err!=nil{
 		goto ERROR
 	}
-	//初始话etcd
-	if err=master.InitJobMgr();err!=nil{
+	//初始化调度协成
+	if err=worker.InitScheduler();err!=nil{
+		goto ERROR
+	}
+
+	//初始话任务管理器
+	if err=worker.InitJobMgr();err!=nil{
 		goto ERROR
 	}
 
