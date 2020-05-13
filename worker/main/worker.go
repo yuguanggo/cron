@@ -36,6 +36,10 @@ func main()  {
 	if err=worker.InitConfig(configFile);err!=nil{
 		goto ERROR
 	}
+	//服务注册
+	if err=worker.InitRegister();err!=nil{
+		goto ERROR
+	}
 	//初始化调度协成
 	if err=worker.InitScheduler();err!=nil{
 		goto ERROR
